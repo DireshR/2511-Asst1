@@ -27,7 +27,7 @@ public final class EntityInfoResponse {
     private final Map<String, FileInfoResponse> files;
 
     public EntityInfoResponse(
-        String id, Angle position, double height, String type, Map<String, FileInfoResponse> files) {
+            String id, Angle position, double height, String type, Map<String, FileInfoResponse> files) {
         this.id = id;
         this.position = position;
         this.type = type;
