@@ -23,8 +23,8 @@ public final class MathsHelper {
         double satX = Math.cos(satelliteAngle.toRadians()) * satelliteHeight;
         double satY = Math.sin(satelliteAngle.toRadians()) * satelliteHeight;
         double otherX = Math.cos(otherAngle.toRadians()) * otherHeight;
-        double otherY = Math.sin(otherAngle.toRadians()) * otherHeight;
 
+        double otherY = Math.sin(otherAngle.toRadians()) * otherHeight;
         // find length of line between euclidean points
         double length = Math.sqrt((satX - otherX) * (satX - otherX) + (satY - otherY) * (satY - otherY));
         return length;
@@ -41,7 +41,7 @@ public final class MathsHelper {
      * Determine if a satellite is visible to a device.
      */
     public static boolean isVisible(double satelliteHeight, Angle satelliteAngle, Angle deviceAngle) {
-        return isVisible(satelliteHeight, satelliteAngle, RADIUS_OF_JUPITER + 50, deviceAngle);
+        return isVisible(satelliteHeight, satelliteAngle, RADIUS_OF_JUPITER, deviceAngle);
     }
 
     /**
@@ -53,7 +53,6 @@ public final class MathsHelper {
         double satX = Math.cos(satelliteAngle.toRadians()) * satelliteHeight;
         double satY = Math.sin(satelliteAngle.toRadians()) * satelliteHeight;
         double otherX = Math.cos(otherAngle.toRadians()) * otherHeight;
-        double otherY = Math.sin(otherAngle.toRadians()) * otherHeight;
 
         // now is the *fun* part since we have to determine visibility to other
         // satellites this is much more complicated
@@ -92,30 +91,29 @@ public final class MathsHelper {
          * Determinant is b^2 - 4ac, and to ensure t is real this just has to be
          * positive.
          *
-         * ... f u n
          */
-        // renaming variables to match equations
+
+        double otherY = Math.sin(otherAngle.toRadians()) * otherHeight;
         double ax = satX;
         double ay = satY;
         double bx = otherX;
         double by = otherY;
-
         // t^2 component == (bx - ax)^2 + (by - ay)^2
         double a = (bx - ax) * (bx - ax) + (by - ay) * (by - ay);
 
         // t component == 2[ax(bx - ax) + ay(by - ay)]
         double b = 2 * (ax * (bx - ax) + ay * (by - ay));
 
-        // t^0 component == ax^2 + ay^2 - RADIUS_OF_JUPITER^2
-        double c = ax * ax + ay * ay - RADIUS_OF_JUPITER * RADIUS_OF_JUPITER;
-
-        // det = b^2 - 4ac
-        double det = b * b - 4 * a * c;
-
-        // non-real t
+        /*
+         * Note for 2022T3: the above explanation works, the only problem is how discriminant is calculated
+         * I have linked a better explanation for the discriminant calculation and it seems to resolve the issue we had
+         */
+        // method explanation can be found here:
+        // https://mathworld.wolfram.com/Circle-LineIntersection.html
+        // discriminant = RADIUS_OF_JUPITER^2*dr^2 - D^2
+        double det = RADIUS_OF_JUPITER * RADIUS_OF_JUPITER * (a) - (ax * by - bx * ay) * (ax * by - bx * ay);
         if (det <= 0)
             return true;
-
         // calculate 2 possible t's
         double sqrtDet = Math.sqrt(det);
 
