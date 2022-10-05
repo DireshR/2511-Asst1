@@ -4,18 +4,15 @@ import unsw.utils.Angle;
 
 public class RelaySatellite extends Satellite {
     private int linearVelocity = -1500;
-    private static final int MAX_RANGE = 300000;
+    private static final double MAX_RANGE = 300000;
 
     public RelaySatellite(String satelliteId, String type, double height, Angle position) {
         super(satelliteId, type, height, position);
+        super.setRange(MAX_RANGE);
     }
 
     public int getLinearVelocity() {
         return linearVelocity;
-    }
-
-    public int getMaxRange() {
-        return MAX_RANGE;
     }
 
     public void setLinearVelocity() {

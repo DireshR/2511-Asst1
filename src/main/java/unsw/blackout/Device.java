@@ -1,20 +1,22 @@
 package unsw.blackout;
 
-//import java.util.ArrayList;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
 import unsw.response.models.FileInfoResponse;
+// import java.util.ArrayList;
 import unsw.utils.Angle;
 
-public class Device {
+public class Device extends Entity {
+    private static final double RADIUS_OF_JUPITER = 69911;
     private String deviceId;
     private String type;
     private Angle position;
-    private double range;
-    private Map<String, FileInfoResponse> files = new HashMap<String, FileInfoResponse>();
+    private ArrayList<File> files = new ArrayList<File>();
 
     public Device(String deviceId, String type, Angle position) {
+        super(deviceId, type);
         this.deviceId = deviceId;
         this.type = type;
         this.position = position;
@@ -44,26 +46,27 @@ public class Device {
         this.position = position;
     }
 
-    public double getRange() {
-        return range;
-    }
-
-    public void setRange(double range) {
-        this.range = range;
-    }
-
     public void addFileToDevice(String filename, String content) {
-        FileInfoResponse file = new FileInfoResponse(filename, content, content.length(), true);
-        files.put(filename, file);
-
+        File file = new File(filename, content);
+        files.add(file);
     }
 
-    public Map<String, FileInfoResponse> getFiles() {
-        return files;
+    public Map<String, FileInfoResponse> getFilesInfo() {
+        Map<String, FileInfoResponse> fileInfo = new HashMap<>();
+        for (File file : files) {
+            fileInfo.put(file.getFilename(),
+                    new FileInfoResponse(file.getFilename(), file.getContent(), file.getSize(), true));
+        }
+        return fileInfo;
     }
 
-    public void setFiles(Map<String, FileInfoResponse> files) {
+    public void setFiles(ArrayList<File> files) {
         this.files = files;
+    }
+
+    @Override
+    public double getHeight() {
+        return RADIUS_OF_JUPITER;
     }
 
 }

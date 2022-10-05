@@ -4,20 +4,17 @@ import unsw.utils.Angle;
 
 public class StandardSatellite extends Satellite {
     private static final int LINEAR_VELOCITY = -2500;
-    private static final int MAX_RANGE = 150000;
+    private static final double MAX_RANGE = 150000;
     private static final int RECEIVE_BANDWIDTH = 1;
     private static final int SEND_BANDWIDTH = 1;
 
     public StandardSatellite(String satelliteId, String type, double height, Angle position) {
         super(satelliteId, type, height, position);
+        super.setRange(MAX_RANGE);
     }
 
     public int getLinearVelocity() {
         return LINEAR_VELOCITY;
-    }
-
-    public int getMaxRange() {
-        return MAX_RANGE;
     }
 
     public int getReceiveBandwidth() {

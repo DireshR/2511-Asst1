@@ -2,46 +2,19 @@ package unsw.blackout;
 
 import unsw.utils.Angle;
 
-public abstract class Satellite {
-    private String satelliteId;
-    private String type;
+public abstract class Satellite extends Entity {
     private double height;
     private Angle position;
     private int linearVelocity;
 
     public Satellite(String satelliteId, String type, double height, Angle position) {
-        this.satelliteId = satelliteId;
-        this.type = type;
+        super(satelliteId, type);
         this.height = height;
         this.position = position;
     }
 
-    public String getSatelliteId() {
-        return satelliteId;
-    }
-
-    public void setSatelliteId(String satelliteId) {
-        this.satelliteId = satelliteId;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
-
-    public double getHeight() {
-        return height;
-    }
-
     public void setHeight(double height) {
         this.height = height;
-    }
-
-    public Angle getPosition() {
-        return position;
     }
 
     public void setPosition(Angle position) {
@@ -54,6 +27,16 @@ public abstract class Satellite {
 
     public void setLinearVelocity(int linearVelocity) {
         this.linearVelocity = linearVelocity;
+    }
+
+    @Override
+    public double getHeight() {
+        return height;
+    }
+
+    @Override
+    public Angle getPosition() {
+        return position;
     }
 
     public abstract void updateLinearVelocity();

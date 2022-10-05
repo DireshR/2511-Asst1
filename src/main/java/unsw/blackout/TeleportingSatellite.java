@@ -4,20 +4,17 @@ import unsw.utils.Angle;
 
 public class TeleportingSatellite extends Satellite {
     private int linearVelocity = 1000;
-    private static final int MAX_RANGE = 200000;
+    private static final double MAX_RANGE = 200000;
     private static final int RECEIVE_BANDWIDTH = 15;
     private static final int SEND_BANDWIDTH = 10;
 
     public TeleportingSatellite(String satelliteId, String type, double height, Angle position) {
         super(satelliteId, type, height, position);
+        super.setRange(MAX_RANGE);
     }
 
     public int getLinearVelocity() {
         return linearVelocity;
-    }
-
-    public int getMaxRange() {
-        return MAX_RANGE;
     }
 
     public static int getReceiveBandwidth() {
@@ -39,15 +36,6 @@ public class TeleportingSatellite extends Satellite {
         setLinearVelocity();
         super.setLinearVelocity(linearVelocity);
     }
-
-    // @Override
-    // public void setPosition(Angle position) {
-    // if (this.getPosition().toDegrees() >= 180) {
-    // this.setPosition(new Angle());
-    // } else {
-
-    // }
-    // }
 
     @Override
     public void moveSatellite() {
