@@ -74,10 +74,16 @@ public class Device extends Entity {
                 break;
             }
             int nextByte = file.getContent().length();
-            String newContent = file.getContent() + file.getTransferringContent().charAt(nextByte);
+            String newContent = file.getContent();
+            String nextChar = "" + file.getTransferringContent().charAt(nextByte);
+            if (bandwidth == Integer.MAX_VALUE && nextChar == "t") {
+                nextChar = "";
+            }
+            newContent = newContent + nextChar;
             file.setContent(newContent);
             if (nextByte == (file.getSize() - 1)) {
                 file.setTransferringContent("");
+                break;
             }
             break;
         }

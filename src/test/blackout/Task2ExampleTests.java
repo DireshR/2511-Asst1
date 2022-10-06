@@ -221,7 +221,7 @@ public class Task2ExampleTests {
                 String msg = "Hey hello how are you";
                 controller.addFileToDevice("DeviceC", "FileAlpha", msg);
                 assertDoesNotThrow(() -> controller.sendFile("FileAlpha", "DeviceC", "Satellite1"));
-                assertNotEquals(new FileInfoResponse("FileAlpha", "", msg.length(), false),
+                assertNotEquals(new FileInfoResponse("FileAlpha", msg, msg.length(), true),
                                 controller.getInfo("Satellite1").getFiles().get("FileAlpha"));
         }
 

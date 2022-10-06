@@ -59,6 +59,14 @@ public abstract class Entity {
         return files;
     }
 
+    public ArrayList<String> getSendFilenames() {
+        ArrayList<String> filenames = new ArrayList<String>();
+        for (File file : filesSending) {
+            filenames.add(file.getFilename());
+        }
+        return filenames;
+    }
+
     public ArrayList<String> getFilenames() {
         ArrayList<String> filenames = new ArrayList<String>();
         for (File file : files) {
@@ -67,13 +75,13 @@ public abstract class Entity {
         return filenames;
     }
 
-    public File findFile(String filename) {
+    public File findFile(String filename) throws FileTransferException {
         for (File file : files) {
             if (file.getFilename().equals(filename)) {
                 return file;
             }
         }
-        return null;
+        throw new FileTransferException.VirtualFileNotFoundException(filename);
     }
 
     public void addFile(String filename, String content) {
@@ -139,7 +147,7 @@ public abstract class Entity {
         filesSending.add(sendFile);
     }
 
-    public boolean tranferComplete(String filename) {
+    public boolean tranferComplete(String filename) throws FileTransferException {
         File file = findFile(filename);
         return file.getTransferringContent().equals("");
     }

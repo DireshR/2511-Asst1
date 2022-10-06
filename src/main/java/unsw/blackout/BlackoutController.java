@@ -137,6 +137,8 @@ public class BlackoutController {
                 sat.updateLinearVelocity();
                 sat.moveSatellite();
             }
+        }
+        for (Entity ent : entities) {
             for (Entity ent1 : entities) {
                 doFileTransfer(ent, ent1);
             }
@@ -255,15 +257,28 @@ public class BlackoutController {
             }
             System.out.println(bandwidth + " sender: " + sender.getEntityId() + " target: " + target.getEntityId());
             target.updateFileTransfer(bandwidth, sender.getEntityId());
-            // } else if (sender instanceof TeleportingSatellite &&
-            // sender.getPosition().equals(Angle.fromDegrees(0))) {
-            // ta
-            // } else if (target instanceof TeleportingSatellite && sender instanceof Device
-            // && sender.getPosition().equals(Angle.fromDegrees(0))) {
 
-            // } else if (target instanceof TeleportingSatellite &&
-            // target.getPosition().equals(Angle.fromDegrees(0))) {
-
+        } else if (sender instanceof TeleportingSatellite && sender.getPosition().equals(Angle.fromDegrees(0))) {
+            target.updateFileTransfer(Integer.MAX_VALUE, sender.getEntityId());
+        } else if (target instanceof TeleportingSatellite && sender instanceof Device
+                && sender.getPosition().equals(Angle.fromDegrees(0))) {
+            ArrayList<String> sendFilenames = sender.getSendFilenames();
+            ArrayList<String> receivingFiles = target.getFilenames();
+            sendFilenames.retainAll(receivingFiles);
+            ArrayList<File> senderFiles = sender.getFiles();
+            for (String filename : sendFilenames) {
+                for (File file : senderFiles) {
+                    if (file.getFilename() == filename) {
+                        String content = file.getContent();
+                        content.replace("t", "");
+                        file.setContent(content);
+                        file.setSize(content.length());
+                    }
+                }
+            }
+            target.leftRange(sender.getEntityId());
+        } else if (target instanceof TeleportingSatellite && target.getPosition().equals(Angle.fromDegrees(0))) {
+            target.updateFileTransfer(Integer.MAX_VALUE, sender.getEntityId());
         } else {
             target.leftRange(sender.getEntityId());
         }
