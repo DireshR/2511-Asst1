@@ -57,15 +57,17 @@ public class StandardSatellite extends Satellite {
                 throw new FileTransferException.VirtualFileAlreadyExistsException(filename);
             }
         }
-        if (numFiles < 3 && (totalBytes + content.length()) < 80) {
+        if (numFiles < 3 && (totalBytes + content.length()) <= 80) {
             super.addFile(filename, content, size, origin);
-        } else {
+        } else if (numFiles >= 3 && (totalBytes + content.length()) <= 80) {
             throw new FileTransferException.VirtualFileNoStorageSpaceException("Max Files Reached");
+        } else if (numFiles < 3 && (totalBytes + content.length()) > 80) {
+            throw new FileTransferException.VirtualFileNoStorageSpaceException("Max Storage Reached");
         }
     }
 
     @Override
-    public void updateFileTransfer(int bandwidth) {
+    public void updateFileTransfer(int bandwidth, String origin) {
         ArrayList<File> files = super.getFiles();
         ArrayList<File> transferringFiles = new ArrayList<File>();
         for (File file : files) {
@@ -74,13 +76,18 @@ public class StandardSatellite extends Satellite {
             }
         }
         for (File file : transferringFiles) {
-            int nextByte = file.getContent().length();
-            String newContent = file.getContent() + file.getTransferringContent().charAt(nextByte);
-            file.setContent(newContent);
-            if (nextByte == (file.getSize() - 1)) {
-                file.setTransferringContent("");
+            if (!(origin.equals(file.getOrigin()))) {
+                break;
             }
-            break;
+            for (int i = 0; i < (bandwidth / transferringFiles.size()); i++) {
+                int nextByte = file.getContent().length();
+                String newContent = file.getContent() + file.getTransferringContent().charAt(nextByte);
+                file.setContent(newContent);
+                if (nextByte == (file.getSize() - 1)) {
+                    file.setTransferringContent("");
+                    break;
+                }
+            }
         }
     }
 

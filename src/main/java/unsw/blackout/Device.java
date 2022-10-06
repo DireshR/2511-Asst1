@@ -61,7 +61,7 @@ public class Device extends Entity {
     }
 
     @Override
-    public void updateFileTransfer(int bandwidth) {
+    public void updateFileTransfer(int bandwidth, String origin) {
         ArrayList<File> files = super.getFiles();
         ArrayList<File> transferringFiles = new ArrayList<File>();
         for (File file : files) {
@@ -70,6 +70,9 @@ public class Device extends Entity {
             }
         }
         for (File file : transferringFiles) {
+            if (!(origin.equals(file.getOrigin()))) {
+                break;
+            }
             int nextByte = file.getContent().length();
             String newContent = file.getContent() + file.getTransferringContent().charAt(nextByte);
             file.setContent(newContent);

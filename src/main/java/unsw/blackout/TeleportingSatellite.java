@@ -68,15 +68,15 @@ public class TeleportingSatellite extends Satellite {
                 throw new FileTransferException.VirtualFileAlreadyExistsException(filename);
             }
         }
-        if ((totalBytes + content.length()) < 200) {
+        if ((totalBytes + content.length()) <= 200) {
             super.addFile(filename, content, size, origin);
         } else {
-            throw new FileTransferException.VirtualFileNoStorageSpaceException("Max Files Reached");
+            throw new FileTransferException.VirtualFileNoStorageSpaceException("Max Storage Reached");
         }
     }
 
     @Override
-    public void updateFileTransfer(int bandwidth) {
+    public void updateFileTransfer(int bandwidth, String origin) {
         ArrayList<File> files = super.getFiles();
         ArrayList<File> transferringFiles = new ArrayList<File>();
         for (File file : files) {
@@ -85,13 +85,18 @@ public class TeleportingSatellite extends Satellite {
             }
         }
         for (File file : transferringFiles) {
-            int nextByte = file.getContent().length();
-            String newContent = file.getContent() + file.getTransferringContent().charAt(nextByte);
-            file.setContent(newContent);
-            if (nextByte == (file.getSize() - 1)) {
-                file.setTransferringContent("");
+            if (!(origin.equals(file.getOrigin()))) {
+                break;
             }
-            break;
+            for (int i = 0; i < (bandwidth / transferringFiles.size()); i++) {
+                int nextByte = file.getContent().length();
+                String newContent = file.getContent() + file.getTransferringContent().charAt(nextByte);
+                file.setContent(newContent);
+                if (nextByte == (file.getSize() - 1)) {
+                    file.setTransferringContent("");
+                    break;
+                }
+            }
         }
     }
 
@@ -105,6 +110,10 @@ public class TeleportingSatellite extends Satellite {
                 break;
             }
         }
+        // if (this.getPosition().equals(Angle.fromDegrees(0)) && ) {
+        // String filename = fileToDelete.getFilename();
+
+        // }
         if (fileToDelete != null) {
             files.remove(fileToDelete);
         }

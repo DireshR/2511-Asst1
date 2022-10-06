@@ -137,7 +137,9 @@ public class BlackoutController {
                 sat.updateLinearVelocity();
                 sat.moveSatellite();
             }
-            ent.updateFileTransfer(1);
+            for (Entity ent1 : entities) {
+                doFileTransfer(ent, ent1);
+            }
         }
     }
 
@@ -243,12 +245,29 @@ public class BlackoutController {
         target.transferFile(fileName, content, fromId);
     }
 
-    // public void doFileTransfer(String fileName, Entity sender, Entity target)
-    // throws FileTransferException {
-    // if (isCommunicable(sender.getEntityId(), target.getEntityId())) {
+    public void doFileTransfer(Entity sender, Entity target) {
+        if (isCommunicable(sender.getEntityId(), target.getEntityId())) {
+            int bandwidth = 0;
+            if (sender.numFilesSending() > 0 && target.numFilesReceiving() > 0) {
+                int senderBandwidth = sender.getAvailableSendBandwidth() / sender.numFilesSending();
+                int targetBandwidth = target.getAvailableReceiveBandwidth() / target.numFilesReceiving();
+                bandwidth = Math.min(senderBandwidth, targetBandwidth);
+            }
+            System.out.println(bandwidth + " sender: " + sender.getEntityId() + " target: " + target.getEntityId());
+            target.updateFileTransfer(bandwidth, sender.getEntityId());
+            // } else if (sender instanceof TeleportingSatellite &&
+            // sender.getPosition().equals(Angle.fromDegrees(0))) {
+            // ta
+            // } else if (target instanceof TeleportingSatellite && sender instanceof Device
+            // && sender.getPosition().equals(Angle.fromDegrees(0))) {
 
-    // }
-    // }
+            // } else if (target instanceof TeleportingSatellite &&
+            // target.getPosition().equals(Angle.fromDegrees(0))) {
+
+        } else {
+            target.leftRange(sender.getEntityId());
+        }
+    }
 
     public void createDevice(String deviceId, String type, Angle position, boolean isMoving) {
         createDevice(deviceId, type, position);

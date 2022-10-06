@@ -55,7 +55,7 @@ public class RelaySatellite extends Satellite {
     }
 
     @Override
-    public void updateFileTransfer(int bandwidth) {
+    public void updateFileTransfer(int bandwidth, String origin) {
         return;
     }
 

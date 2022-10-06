@@ -119,8 +119,13 @@ public abstract class Entity {
     public Map<String, FileInfoResponse> getFilesInfo() {
         Map<String, FileInfoResponse> fileInfo = new HashMap<>();
         for (File file : files) {
-            fileInfo.put(file.getFilename(),
-                    new FileInfoResponse(file.getFilename(), file.getContent(), file.getSize(), true));
+            if (file.getContent().length() == file.getSize()) {
+                fileInfo.put(file.getFilename(),
+                        new FileInfoResponse(file.getFilename(), file.getContent(), file.getSize(), true));
+            } else {
+                fileInfo.put(file.getFilename(),
+                        new FileInfoResponse(file.getFilename(), file.getContent(), file.getSize(), false));
+            }
         }
         return fileInfo;
     }
@@ -132,6 +137,23 @@ public abstract class Entity {
         }
         File sendFile = new File(filename, file.getContent());
         filesSending.add(sendFile);
+    }
+
+    public boolean tranferComplete(String filename) {
+        File file = findFile(filename);
+        return file.getTransferringContent().equals("");
+    }
+
+    public void removeSendFile(String filename) {
+        File fileSent = null;
+        for (File file : filesSending) {
+            if (file.getFilename().equals(filename)) {
+                fileSent = file;
+            }
+        }
+        if (!(filesSending.equals(null))) {
+            filesSending.remove(fileSent);
+        }
     }
 
     public boolean isDevice() {
@@ -156,7 +178,7 @@ public abstract class Entity {
 
     public abstract Angle getPosition();
 
-    public abstract void updateFileTransfer(int bandwidth);
+    public abstract void updateFileTransfer(int bandwidth, String origin);
 
     public abstract void leftRange(String senderId);
 }
