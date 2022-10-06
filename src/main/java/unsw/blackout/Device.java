@@ -1,10 +1,12 @@
 package unsw.blackout;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 
-import unsw.response.models.FileInfoResponse;
+// import java.util.ArrayList;
+// import java.util.HashMap;
+// import java.util.Map;
+
+// import unsw.response.models.FileInfoResponse;
 // import java.util.ArrayList;
 import unsw.utils.Angle;
 
@@ -13,13 +15,15 @@ public class Device extends Entity {
     private String deviceId;
     private String type;
     private Angle position;
-    private ArrayList<File> files = new ArrayList<File>();
+    // private ArrayList<File> files = new ArrayList<File>();
 
     public Device(String deviceId, String type, Angle position) {
         super(deviceId, type);
         this.deviceId = deviceId;
         this.type = type;
         this.position = position;
+        this.setAvailableReceiveBandwidth(Integer.MAX_VALUE);
+        this.setAvailableSendBandwidth(Integer.MAX_VALUE);
     }
 
     public String getDeviceId() {
@@ -46,27 +50,49 @@ public class Device extends Entity {
         this.position = position;
     }
 
-    public void addFileToDevice(String filename, String content) {
-        File file = new File(filename, content);
-        files.add(file);
-    }
-
-    public Map<String, FileInfoResponse> getFilesInfo() {
-        Map<String, FileInfoResponse> fileInfo = new HashMap<>();
-        for (File file : files) {
-            fileInfo.put(file.getFilename(),
-                    new FileInfoResponse(file.getFilename(), file.getContent(), file.getSize(), true));
-        }
-        return fileInfo;
-    }
-
-    public void setFiles(ArrayList<File> files) {
-        this.files = files;
-    }
-
     @Override
     public double getHeight() {
         return RADIUS_OF_JUPITER;
+    }
+
+    @Override
+    public void transferFile(String filename, String content, String origin) throws FileTransferException {
+        super.addFile(filename, content, content.length(), origin);
+    }
+
+    @Override
+    public void updateFileTransfer(int bandwidth) {
+        ArrayList<File> files = super.getFiles();
+        ArrayList<File> transferringFiles = new ArrayList<File>();
+        for (File file : files) {
+            if (!(file.getTransferringContent().equals(""))) {
+                transferringFiles.add(file);
+            }
+        }
+        for (File file : transferringFiles) {
+            int nextByte = file.getContent().length();
+            String newContent = file.getContent() + file.getTransferringContent().charAt(nextByte);
+            file.setContent(newContent);
+            if (nextByte == (file.getSize() - 1)) {
+                file.setTransferringContent("");
+            }
+            break;
+        }
+    }
+
+    @Override
+    public void leftRange(String senderId) {
+        ArrayList<File> files = super.getFiles();
+        File fileToDelete = null;
+        for (File file : files) {
+            if (file.getOrigin().equals(senderId) && !(file.getTransferringContent().equals(""))) {
+                fileToDelete = file;
+                break;
+            }
+        }
+        if (fileToDelete != null) {
+            files.remove(fileToDelete);
+        }
     }
 
 }

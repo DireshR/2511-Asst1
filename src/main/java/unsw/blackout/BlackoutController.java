@@ -13,7 +13,7 @@ import unsw.utils.MathsHelper;
 
 public class BlackoutController {
 
-    private static final double RADIUS_OF_JUPITER = 69911;
+    // private static final double RADIUS_OF_JUPITER = 69911;
     private ArrayList<Entity> entities = new ArrayList<Entity>();
 
     public void createDevice(String deviceId, String type, Angle position) {
@@ -106,7 +106,7 @@ public class BlackoutController {
         for (Entity ent : entities) {
             if (ent.getEntityId().equals(deviceId)) {
                 Device curr = (Device) ent;
-                curr.addFileToDevice(filename, content);
+                curr.addFile(filename, content);
             }
         }
     }
@@ -117,20 +117,11 @@ public class BlackoutController {
         double height;
         String type;
         for (Entity ent : entities) {
-            if (ent.getEntityId().equals(id) && ent instanceof Satellite) {
-                Satellite sat = (Satellite) ent;
-                position = sat.getPosition();
-                height = sat.getHeight();
-                type = sat.getType();
-                return new EntityInfoResponse(id, position, height, type);
-            }
-
-            if (ent.getEntityId().equals(id) && ent instanceof Device) {
-                Device dev = (Device) ent;
-                position = dev.getPosition();
-                height = RADIUS_OF_JUPITER;
-                type = dev.getType();
-                Map<String, FileInfoResponse> fileInfo = dev.getFilesInfo();
+            if (ent.getEntityId().equals(id)) {
+                position = ent.getPosition();
+                height = ent.getHeight();
+                type = ent.getType();
+                Map<String, FileInfoResponse> fileInfo = ent.getFilesInfo();
                 return new EntityInfoResponse(id, position, height, type, fileInfo);
             }
         }
@@ -146,6 +137,7 @@ public class BlackoutController {
                 sat.updateLinearVelocity();
                 sat.moveSatellite();
             }
+            ent.updateFileTransfer(1);
         }
     }
 
@@ -184,13 +176,29 @@ public class BlackoutController {
         return (distance <= range);
     }
 
+    public boolean isVisible(String senderId, String targetId) {
+        Entity sender = findEntity(senderId).get();
+        Entity target = findEntity(targetId).get();
+        boolean visibility = MathsHelper.isVisible(sender.getHeight(), sender.getPosition(), target.getHeight(),
+                target.getPosition());
+        return (visibility);
+    }
+
     public List<String> communicableEntitiesInRange(String id) {
         // TODO: Task 2 b)
         ArrayList<String> commList = new ArrayList<String>();
-        doCommunicableEntitiesInRange(id, commList);
-        for (String newId : commList) {
+        ArrayList<String> relayList = new ArrayList<String>();
+        ArrayList<String> allList = new ArrayList<String>();
+        doCommunicableEntitiesInRange(id, allList);
+        for (String newId : allList) {
             if (findEntity(newId).get() instanceof RelaySatellite) {
-                commList.addAll(communicableEntitiesInRange(newId));
+                doCommunicableEntitiesInRange(newId, relayList);
+            }
+        }
+        allList.addAll(relayList);
+        for (String targetId : allList) {
+            if ((isCompatible(id, targetId)) && !(commList.contains(targetId))) {
+                commList.add(targetId);
             }
         }
         return commList;
@@ -200,15 +208,47 @@ public class BlackoutController {
         for (Entity ent : entities) {
             String targetId = ent.getEntityId();
             if (!(targetId.equals(id)) && isCompatible(id, targetId) && inRange(id, targetId)
-                    && !(commList.contains(targetId))) {
+                    && isVisible(id, targetId) && !(commList.contains(targetId))) {
                 commList.add(targetId);
             }
         }
     }
 
+    public boolean isCommunicable(String senderId, String targetId) {
+        List<String> commList = communicableEntitiesInRange(senderId);
+        for (String id : commList) {
+            if (id.equals(targetId)) {
+                return true;
+            }
+
+        }
+        return false;
+    }
+
     public void sendFile(String fileName, String fromId, String toId) throws FileTransferException {
         // TODO: Task 2 c)
+        Entity sender = findEntity(fromId).get();
+        File file = sender.findFile(fileName);
+        String content = file.getContent();
+        if (content.length() != file.getSize()) {
+            throw new FileTransferException.VirtualFileNotFoundException(fileName);
+        }
+        Entity target = findEntity(toId).get();
+        if (sender.numFilesSending() > sender.getAvailableSendBandwidth()) {
+            throw new FileTransferException.VirtualFileNoBandwidthException(fromId);
+        } else if (target.numFilesReceiving() > target.getAvailableReceiveBandwidth()) {
+            throw new FileTransferException.VirtualFileNoBandwidthException(toId);
+        }
+        sender.sendFile(fileName);
+        target.transferFile(fileName, content, fromId);
     }
+
+    // public void doFileTransfer(String fileName, Entity sender, Entity target)
+    // throws FileTransferException {
+    // if (isCommunicable(sender.getEntityId(), target.getEntityId())) {
+
+    // }
+    // }
 
     public void createDevice(String deviceId, String type, Angle position, boolean isMoving) {
         createDevice(deviceId, type, position);

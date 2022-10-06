@@ -9,6 +9,8 @@ public class RelaySatellite extends Satellite {
     public RelaySatellite(String satelliteId, String type, double height, Angle position) {
         super(satelliteId, type, height, position);
         super.setRange(MAX_RANGE);
+        super.setAvailableReceiveBandwidth(0);
+        super.setAvailableSendBandwidth(0);
     }
 
     public int getLinearVelocity() {
@@ -47,4 +49,18 @@ public class RelaySatellite extends Satellite {
         this.setPosition(newAngle);
     }
 
+    @Override
+    public void transferFile(String filename, String content, String origin) throws FileTransferException {
+        throw new FileTransferException.VirtualFileNoBandwidthException(this.getEntityId());
+    }
+
+    @Override
+    public void updateFileTransfer(int bandwidth) {
+        return;
+    }
+
+    @Override
+    public void leftRange(String senderId) {
+        return;
+    }
 }
