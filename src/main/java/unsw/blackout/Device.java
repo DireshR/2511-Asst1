@@ -73,19 +73,21 @@ public class Device extends Entity {
             if (!(origin.equals(file.getOrigin()))) {
                 break;
             }
-            int nextByte = file.getContent().length();
-            String newContent = file.getContent();
-            String nextChar = "" + file.getTransferringContent().charAt(nextByte);
-            if (bandwidth == Integer.MAX_VALUE && nextChar == "t") {
-                nextChar = "";
+            for (int i = 0; i < (bandwidth / transferringFiles.size()); i++) {
+                int nextByte = file.getContent().length();
+                String newContent = file.getContent();
+                Character nextChar = file.getTransferringContent().charAt(nextByte);
+                if (bandwidth == Integer.MAX_VALUE && nextChar.equals('t')) {
+                    continue;
+                }
+                newContent = newContent + nextChar;
+                file.setContent(newContent);
+                if (nextByte == (file.getSize() - 1)) {
+                    file.setTransferringContent("");
+                    file.setSize(file.getContent().length());
+                    break;
+                }
             }
-            newContent = newContent + nextChar;
-            file.setContent(newContent);
-            if (nextByte == (file.getSize() - 1)) {
-                file.setTransferringContent("");
-                break;
-            }
-            break;
         }
     }
 

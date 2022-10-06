@@ -35,6 +35,18 @@ public class TeleportingSatellite extends Satellite {
         }
     }
 
+    public boolean isTeleporting() {
+        Angle currAngle = this.getPosition();
+        double currPos = currAngle.toRadians();
+        int linVel = getLinearVelocity();
+        double radius = this.getHeight();
+        double angVel = linVel / radius;
+        double newPos = currPos + angVel;
+        Angle newAngle = Angle.fromRadians(newPos);
+        return ((currAngle.toDegrees() < 180 && newAngle.toDegrees() >= 180)
+                || (currAngle.toDegrees() > 180 && newAngle.toDegrees() <= 180));
+    }
+
     @Override
     public void updateLinearVelocity() {
         setLinearVelocity();
@@ -91,9 +103,9 @@ public class TeleportingSatellite extends Satellite {
             for (int i = 0; i < (bandwidth / transferringFiles.size()); i++) {
                 int nextByte = file.getContent().length();
                 String newContent = file.getContent();
-                String nextChar = "" + file.getTransferringContent().charAt(nextByte);
-                if (bandwidth == Integer.MAX_VALUE && nextChar == "t") {
-                    nextChar = "";
+                Character nextChar = file.getTransferringContent().charAt(nextByte);
+                if (bandwidth == Integer.MAX_VALUE && nextChar.equals('t')) {
+                    continue;
                 }
                 newContent = newContent + nextChar;
                 file.setContent(newContent);

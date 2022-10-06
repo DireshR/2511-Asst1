@@ -255,13 +255,12 @@ public class BlackoutController {
                 int targetBandwidth = target.getAvailableReceiveBandwidth() / target.numFilesReceiving();
                 bandwidth = Math.min(senderBandwidth, targetBandwidth);
             }
-            System.out.println(bandwidth + " sender: " + sender.getEntityId() + " target: " + target.getEntityId());
             target.updateFileTransfer(bandwidth, sender.getEntityId());
 
-        } else if (sender instanceof TeleportingSatellite && sender.getPosition().equals(Angle.fromDegrees(0))) {
+        } else if (sender instanceof TeleportingSatellite && (((TeleportingSatellite) sender).isTeleporting())) {
             target.updateFileTransfer(Integer.MAX_VALUE, sender.getEntityId());
         } else if (target instanceof TeleportingSatellite && sender instanceof Device
-                && sender.getPosition().equals(Angle.fromDegrees(0))) {
+                && (((TeleportingSatellite) target).isTeleporting())) {
             ArrayList<String> sendFilenames = sender.getSendFilenames();
             ArrayList<String> receivingFiles = target.getFilenames();
             sendFilenames.retainAll(receivingFiles);
@@ -277,7 +276,7 @@ public class BlackoutController {
                 }
             }
             target.leftRange(sender.getEntityId());
-        } else if (target instanceof TeleportingSatellite && target.getPosition().equals(Angle.fromDegrees(0))) {
+        } else if (target instanceof TeleportingSatellite && (((TeleportingSatellite) target).isTeleporting())) {
             target.updateFileTransfer(Integer.MAX_VALUE, sender.getEntityId());
         } else {
             target.leftRange(sender.getEntityId());
