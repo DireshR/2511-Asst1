@@ -104,6 +104,8 @@ public class Task1ExampleTests {
                                 controller.getInfo("DeviceC"));
         }
 
+        // My Tests:
+
         @Test
         public void testRanges() {
                 // Task 1
@@ -174,5 +176,32 @@ public class Task1ExampleTests {
                 assertEquals(controller.findEntity("DeviceA").get().getPosition(), Angle.fromDegrees(30));
                 assertEquals(controller.findEntity("DeviceB").get().getPosition(), Angle.fromDegrees(180));
                 assertEquals(controller.findEntity("DeviceC").get().getPosition(), Angle.fromDegrees(330));
+        }
+
+        @Test
+        public void testActualDeletion() {
+                // Task 1
+                BlackoutController controller = new BlackoutController();
+
+                // Creates 1 satellite and 3 devices and deletes them
+                controller.createSatellite("Satellite1", "StandardSatellite", 100 + RADIUS_OF_JUPITER,
+                                Angle.fromDegrees(340));
+                controller.createDevice("DeviceA", "HandheldDevice", Angle.fromDegrees(30));
+                controller.createDevice("DeviceB", "LaptopDevice", Angle.fromDegrees(180));
+                controller.createDevice("DeviceC", "DesktopDevice", Angle.fromDegrees(330));
+
+                assertListAreEqualIgnoringOrder(Arrays.asList("Satellite1"), controller.listSatelliteIds());
+                assertListAreEqualIgnoringOrder(Arrays.asList("DeviceA", "DeviceB", "DeviceC"),
+                                controller.listDeviceIds());
+
+                controller.removeDevice("DeviceA");
+                assertListAreEqualIgnoringOrder(Arrays.asList("DeviceB", "DeviceC"), controller.listDeviceIds());
+
+                controller.removeDevice("DeviceB");
+                controller.removeDevice("DeviceC");
+                assertListAreEqualIgnoringOrder(Arrays.asList(), controller.listDeviceIds());
+
+                controller.removeSatellite("Satellite1");
+                assertListAreEqualIgnoringOrder(Arrays.asList(), controller.listSatelliteIds());
         }
 }

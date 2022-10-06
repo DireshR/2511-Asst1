@@ -188,20 +188,32 @@ public class BlackoutController {
         return (visibility);
     }
 
+    public int numRelays() {
+        int num = 0;
+        for (Entity ent : entities) {
+            if (ent instanceof RelaySatellite) {
+                num++;
+            }
+        }
+        return num;
+    }
+
     public List<String> communicableEntitiesInRange(String id) {
         // TODO: Task 2 b)
         ArrayList<String> commList = new ArrayList<String>();
         ArrayList<String> relayList = new ArrayList<String>();
         ArrayList<String> allList = new ArrayList<String>();
         doCommunicableEntitiesInRange(id, allList);
-        for (String newId : allList) {
-            if (findEntity(newId).get() instanceof RelaySatellite) {
-                doCommunicableEntitiesInRange(newId, relayList);
+        for (int i = 0; i < numRelays(); i++) {
+            for (String newId : allList) {
+                if (findEntity(newId).get() instanceof RelaySatellite) {
+                    doCommunicableEntitiesInRange(newId, relayList);
+                }
             }
+            allList.addAll(relayList);
         }
-        allList.addAll(relayList);
         for (String targetId : allList) {
-            if ((isCompatible(id, targetId)) && !(commList.contains(targetId))) {
+            if ((isCompatible(id, targetId))) {
                 commList.add(targetId);
             }
         }
@@ -238,9 +250,9 @@ public class BlackoutController {
             throw new FileTransferException.VirtualFileNotFoundException(fileName);
         }
         Entity target = findEntity(toId).get();
-        if (sender.numFilesSending() > sender.getAvailableSendBandwidth()) {
+        if (sender.numFilesSending() >= sender.getAvailableSendBandwidth()) {
             throw new FileTransferException.VirtualFileNoBandwidthException(fromId);
-        } else if (target.numFilesReceiving() > target.getAvailableReceiveBandwidth()) {
+        } else if (target.numFilesReceiving() >= target.getAvailableReceiveBandwidth()) {
             throw new FileTransferException.VirtualFileNoBandwidthException(toId);
         }
         sender.sendFile(fileName);

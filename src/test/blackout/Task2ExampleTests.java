@@ -211,7 +211,7 @@ public class Task2ExampleTests {
         // MY TESTS:
 
         @Test
-        public void testLeftRangeBeforeTransfer() {
+        public void testDeviceLeftRangeBeforeTransfer() {
                 BlackoutController controller = new BlackoutController();
                 controller.createSatellite("Satellite1", "StandardSatellite", 45000 + RADIUS_OF_JUPITER,
                                 Angle.fromDegrees(320));
@@ -221,8 +221,31 @@ public class Task2ExampleTests {
                 String msg = "Hey hello how are you";
                 controller.addFileToDevice("DeviceC", "FileAlpha", msg);
                 assertDoesNotThrow(() -> controller.sendFile("FileAlpha", "DeviceC", "Satellite1"));
+                controller.simulate(msg.length() * 2);
                 assertNotEquals(new FileInfoResponse("FileAlpha", msg, msg.length(), true),
                                 controller.getInfo("Satellite1").getFiles().get("FileAlpha"));
+        }
+
+        @Test
+        public void testSatelliteLeftRangeBeforeTransfer() {
+                BlackoutController controller = new BlackoutController();
+                controller.createSatellite("Satellite1", "StandardSatellite", 10000 + RADIUS_OF_JUPITER,
+                                Angle.fromDegrees(320));
+                controller.createDevice("DeviceB", "LaptopDevice", Angle.fromDegrees(310));
+                controller.createDevice("DeviceC", "HandheldDevice", Angle.fromDegrees(320));
+
+                String msg = "Hey how are you";
+                controller.addFileToDevice("DeviceC", "FileAlpha", msg);
+                assertDoesNotThrow(() -> controller.sendFile("FileAlpha", "DeviceC", "Satellite1"));
+                controller.simulate(msg.length() * 2);
+                assertEquals(new FileInfoResponse("FileAlpha", msg, msg.length(), true),
+                                controller.getInfo("Satellite1").getFiles().get("FileAlpha"));
+                controller.createSatellite("Satellite2", "StandardSatellite", 159000 + RADIUS_OF_JUPITER,
+                                Angle.fromDegrees(292));
+                assertDoesNotThrow(() -> controller.sendFile("FileAlpha", "Satellite1", "Satellite2"));
+                controller.simulate(msg.length() * 2);
+                assertNotEquals(new FileInfoResponse("FileAlpha", msg, msg.length(), true),
+                                controller.getInfo("Satellite2").getFiles().get("FileAlpha"));
         }
 
         @Test
@@ -239,19 +262,226 @@ public class Task2ExampleTests {
                                 () -> controller.sendFile("FileAlpha", "DeviceC", "Satellite1"));
         }
 
-        // @Test
-        // public void sendingToRelay() {
-        // BlackoutController controller = new BlackoutController();
-        // controller.createSatellite("Satellite1", "RelaySatellite", 45000 +
-        // RADIUS_OF_JUPITER,
-        // Angle.fromDegrees(320));
-        // controller.createDevice("DeviceB", "LaptopDevice", Angle.fromDegrees(310));
-        // controller.createDevice("DeviceC", "HandheldDevice", Angle.fromDegrees(320));
+        @Test
+        public void sendingThroughRelays() {
+                BlackoutController controller = new BlackoutController();
+                controller.createSatellite("Satellite1", "StandardSatellite", 23000 + RADIUS_OF_JUPITER,
+                                Angle.fromDegrees(300));
+                controller.createSatellite("Satellite2", "RelaySatellite", 20000 + RADIUS_OF_JUPITER,
+                                Angle.fromDegrees(190));
+                controller.createSatellite("Satellite3", "RelaySatellite", 15000 + RADIUS_OF_JUPITER,
+                                Angle.fromDegrees(100));
+                controller.createSatellite("Satellite4", "RelaySatellite", 34000 + RADIUS_OF_JUPITER,
+                                Angle.fromDegrees(240));
+                controller.createDevice("DeviceB", "LaptopDevice", Angle.fromDegrees(160));
 
-        // String msg = "Hey hello how are you";
-        // controller.addFileToDevice("DeviceC", "FileAlpha", msg);
-        // assertThrows(FileTransferException.VirtualFileNoBandwidthException.class,
-        // () -> controller.sendFile("FileAlpha", "DeviceC", "Satellite1"));
-        // }
+                String msg = "Hey how are you doing I am well thanks";
+                controller.addFileToDevice("DeviceB", "FileAlpha", msg);
 
+                assertDoesNotThrow(() -> controller.sendFile("FileAlpha", "DeviceB", "Satellite1"));
+                controller.simulate(msg.length() + 2);
+                assertEquals(new FileInfoResponse("FileAlpha", msg, msg.length(), true),
+                                controller.getInfo("Satellite1").getFiles().get("FileAlpha"));
+        }
+
+        @Test
+        public void testSendPartialFile() {
+                BlackoutController controller = new BlackoutController();
+                controller.createSatellite("Satellite1", "StandardSatellite", 10000 + RADIUS_OF_JUPITER,
+                                Angle.fromDegrees(320));
+                controller.createDevice("DeviceB", "LaptopDevice", Angle.fromDegrees(310));
+                controller.createDevice("DeviceC", "HandheldDevice", Angle.fromDegrees(320));
+
+                String msg = "Hey how are you";
+                controller.addFileToDevice("DeviceC", "FileAlpha", msg);
+                assertDoesNotThrow(() -> controller.sendFile("FileAlpha", "DeviceC", "Satellite1"));
+                controller.simulate(msg.length() * (1 / 2));
+                assertNotEquals(new FileInfoResponse("FileAlpha", msg, msg.length(), true),
+                                controller.getInfo("Satellite1").getFiles().get("FileAlpha"));
+                controller.createSatellite("Satellite2", "StandardSatellite", 12000 + RADIUS_OF_JUPITER,
+                                Angle.fromDegrees(300));
+                assertThrows(FileTransferException.VirtualFileNotFoundException.class,
+                                () -> controller.sendFile("FileAlpha", "Satellite1", "Satellite2"));
+                controller.simulate(msg.length());
+                assertDoesNotThrow(() -> controller.sendFile("FileAlpha", "Satellite1", "Satellite2"));
+                controller.simulate(msg.length() * 2);
+                assertEquals(new FileInfoResponse("FileAlpha", msg, msg.length(), true),
+                                controller.getInfo("Satellite2").getFiles().get("FileAlpha"));
+        }
+
+        @Test
+        public void testSendAlreadySentFile() {
+                BlackoutController controller = new BlackoutController();
+                controller.createSatellite("Satellite1", "StandardSatellite", 10000 + RADIUS_OF_JUPITER,
+                                Angle.fromDegrees(320));
+                controller.createDevice("DeviceB", "LaptopDevice", Angle.fromDegrees(310));
+                controller.createDevice("DeviceC", "HandheldDevice", Angle.fromDegrees(320));
+
+                String msg = "Hey how are you";
+                controller.addFileToDevice("DeviceC", "FileAlpha", msg);
+                assertDoesNotThrow(() -> controller.sendFile("FileAlpha", "DeviceC", "Satellite1"));
+                controller.simulate(msg.length() * (1 / 2));
+                assertNotEquals(new FileInfoResponse("FileAlpha", msg, msg.length(), true),
+                                controller.getInfo("Satellite1").getFiles().get("FileAlpha"));
+                assertThrows(FileTransferException.VirtualFileAlreadyExistsException.class,
+                                () -> controller.sendFile("FileAlpha", "DeviceC", "Satellite1"));
+                controller.simulate(msg.length() * 2);
+                assertEquals(new FileInfoResponse("FileAlpha", msg, msg.length(), true),
+                                controller.getInfo("Satellite1").getFiles().get("FileAlpha"));
+        }
+
+        @Test
+        public void testMaxFilesReached() {
+                BlackoutController controller = new BlackoutController();
+                controller.createSatellite("Satellite1", "StandardSatellite", 10000 + RADIUS_OF_JUPITER,
+                                Angle.fromDegrees(190));
+                controller.createSatellite("Satellite2", "RelaySatellite", 5000 + RADIUS_OF_JUPITER,
+                                Angle.fromDegrees(190));
+                controller.createDevice("DeviceB", "LaptopDevice", Angle.fromDegrees(160));
+
+                String msg = "Hey how are you";
+                controller.addFileToDevice("DeviceB", "FileAlpha", msg);
+                controller.addFileToDevice("DeviceB", "FileBeta", msg);
+                controller.addFileToDevice("DeviceB", "FileGamma", msg);
+                controller.addFileToDevice("DeviceB", "FileOver", msg);
+                assertDoesNotThrow(() -> controller.sendFile("FileAlpha", "DeviceB", "Satellite1"));
+                controller.simulate(msg.length() + 2);
+                assertEquals(new FileInfoResponse("FileAlpha", msg, msg.length(), true),
+                                controller.getInfo("Satellite1").getFiles().get("FileAlpha"));
+                assertDoesNotThrow(() -> controller.sendFile("FileBeta", "DeviceB", "Satellite1"));
+                controller.simulate(msg.length() + 2);
+                assertEquals(new FileInfoResponse("FileBeta", msg, msg.length(), true),
+                                controller.getInfo("Satellite1").getFiles().get("FileBeta"));
+                assertDoesNotThrow(() -> controller.sendFile("FileGamma", "DeviceB", "Satellite1"));
+                controller.simulate(msg.length() + 2);
+                assertEquals(new FileInfoResponse("FileGamma", msg, msg.length(), true),
+                                controller.getInfo("Satellite1").getFiles().get("FileGamma"));
+                assertThrows(FileTransferException.VirtualFileNoStorageSpaceException.class,
+                                () -> controller.sendFile("FileOver", "DeviceB", "Satellite1"));
+        }
+
+        @Test
+        public void testMaxStorageReached() {
+                BlackoutController controller = new BlackoutController();
+                controller.createSatellite("Satellite1", "StandardSatellite", 23000 + RADIUS_OF_JUPITER,
+                                Angle.fromDegrees(300));
+                controller.createSatellite("Satellite2", "RelaySatellite", 20000 + RADIUS_OF_JUPITER,
+                                Angle.fromDegrees(190));
+                controller.createSatellite("Satellite3", "RelaySatellite", 15000 + RADIUS_OF_JUPITER,
+                                Angle.fromDegrees(100));
+                controller.createSatellite("Satellite4", "RelaySatellite", 34000 + RADIUS_OF_JUPITER,
+                                Angle.fromDegrees(240));
+                controller.createDevice("DeviceB", "LaptopDevice", Angle.fromDegrees(160));
+
+                String msg = "Hey how are you doing I am well thanks";
+                controller.addFileToDevice("DeviceB", "FileAlpha", msg);
+                controller.addFileToDevice("DeviceB", "FileBeta", msg);
+                controller.addFileToDevice("DeviceB", "FileGamma", msg);
+                assertDoesNotThrow(() -> controller.sendFile("FileAlpha", "DeviceB", "Satellite1"));
+                controller.simulate(msg.length() + 2);
+                assertEquals(new FileInfoResponse("FileAlpha", msg, msg.length(), true),
+                                controller.getInfo("Satellite1").getFiles().get("FileAlpha"));
+                assertDoesNotThrow(() -> controller.sendFile("FileBeta", "DeviceB", "Satellite1"));
+                controller.simulate(msg.length() + 2);
+                assertEquals(new FileInfoResponse("FileBeta", msg, msg.length(), true),
+                                controller.getInfo("Satellite1").getFiles().get("FileBeta"));
+                assertThrows(FileTransferException.VirtualFileNoStorageSpaceException.class,
+                                () -> controller.sendFile("FileGamma", "DeviceB", "Satellite1"));
+
+        }
+
+        @Test
+        public void testTeleporterMaxStorageReached() {
+                BlackoutController controller = new BlackoutController();
+                controller.createSatellite("Satellite1", "TeleportingSatellite", 23000 + RADIUS_OF_JUPITER,
+                                Angle.fromDegrees(95));
+                controller.createSatellite("Satellite2", "RelaySatellite", 20000 + RADIUS_OF_JUPITER,
+                                Angle.fromDegrees(160));
+                controller.createSatellite("Satellite3", "RelaySatellite", 15000 + RADIUS_OF_JUPITER,
+                                Angle.fromDegrees(110));
+                controller.createSatellite("Satellite4", "RelaySatellite", 34000 + RADIUS_OF_JUPITER,
+                                Angle.fromDegrees(95));
+                controller.createDevice("DeviceB", "LaptopDevice", Angle.fromDegrees(160));
+
+                String msg = "Hey how are you doing I am well thanks Hey how are you doing I am well thanks";
+                controller.addFileToDevice("DeviceB", "FileAlpha", msg);
+                controller.addFileToDevice("DeviceB", "FileBeta", msg);
+                controller.addFileToDevice("DeviceB", "FileGamma", msg);
+                assertDoesNotThrow(() -> controller.sendFile("FileAlpha", "DeviceB", "Satellite1"));
+                controller.simulate(msg.length() + 2);
+                assertEquals(new FileInfoResponse("FileAlpha", msg, msg.length(), true),
+                                controller.getInfo("Satellite1").getFiles().get("FileAlpha"));
+                assertDoesNotThrow(() -> controller.sendFile("FileBeta", "DeviceB", "Satellite1"));
+                controller.simulate(msg.length() + 2);
+                assertEquals(new FileInfoResponse("FileBeta", msg, msg.length(), true),
+                                controller.getInfo("Satellite1").getFiles().get("FileBeta"));
+                assertThrows(FileTransferException.VirtualFileNoStorageSpaceException.class,
+                                () -> controller.sendFile("FileGamma", "DeviceB", "Satellite1"));
+
+        }
+
+        @Test
+        public void testMaxBandwidthReached() {
+                BlackoutController controller = new BlackoutController();
+                controller.createSatellite("Satellite1", "StandardSatellite", 10000 + RADIUS_OF_JUPITER,
+                                Angle.fromDegrees(190));
+                controller.createSatellite("Satellite2", "RelaySatellite", 5000 + RADIUS_OF_JUPITER,
+                                Angle.fromDegrees(190));
+                controller.createDevice("DeviceB", "LaptopDevice", Angle.fromDegrees(160));
+
+                String msg = "Hey how are you";
+                controller.addFileToDevice("DeviceB", "FileAlpha", msg);
+                controller.addFileToDevice("DeviceB", "FileBeta", msg);
+                assertDoesNotThrow(() -> controller.sendFile("FileAlpha", "DeviceB", "Satellite1"));
+                assertThrows(FileTransferException.VirtualFileNoBandwidthException.class,
+                                () -> controller.sendFile("FileBeta", "DeviceB", "Satellite1"));
+                controller.simulate(msg.length() + 2);
+                assertEquals(new FileInfoResponse("FileAlpha", msg, msg.length(), true),
+                                controller.getInfo("Satellite1").getFiles().get("FileAlpha"));
+                assertDoesNotThrow(() -> controller.sendFile("FileBeta", "DeviceB", "Satellite1"));
+                controller.simulate(msg.length() + 2);
+                assertEquals(new FileInfoResponse("FileBeta", msg, msg.length(), true),
+                                controller.getInfo("Satellite1").getFiles().get("FileBeta"));
+        }
+
+        @Test
+        public void testPartialTransfer() {
+                BlackoutController controller = new BlackoutController();
+                controller.createSatellite("Satellite1", "StandardSatellite", 10000 + RADIUS_OF_JUPITER,
+                                Angle.fromDegrees(190));
+                controller.createSatellite("Satellite2", "RelaySatellite", 5000 + RADIUS_OF_JUPITER,
+                                Angle.fromDegrees(190));
+                controller.createDevice("DeviceB", "LaptopDevice", Angle.fromDegrees(160));
+
+                String msg = "Hey how are you";
+                controller.addFileToDevice("DeviceB", "FileAlpha", msg);
+                controller.addFileToDevice("DeviceB", "FileBeta", msg);
+                assertDoesNotThrow(() -> controller.sendFile("FileAlpha", "DeviceB", "Satellite1"));
+                controller.simulate(4);
+                assertEquals(4, controller.getInfo("Satellite1").getFiles().get("FileAlpha").getData().length());
+        }
+
+        @Test
+        public void testTeleportingPartialTransfer() {
+                BlackoutController controller = new BlackoutController();
+                controller.createSatellite("Satellite1", "TeleportingSatellite", 10000 + RADIUS_OF_JUPITER,
+                                Angle.fromDegrees(140));
+                controller.createSatellite("Satellite2", "RelaySatellite", 5000 + RADIUS_OF_JUPITER,
+                                Angle.fromDegrees(160));
+                controller.createDevice("DeviceB", "LaptopDevice", Angle.fromDegrees(160));
+
+                String msg = "Hey how are you";
+                controller.addFileToDevice("DeviceB", "FileAlpha", msg);
+                controller.addFileToDevice("DeviceB", "FileBeta", (msg + msg));
+                assertDoesNotThrow(() -> controller.sendFile("FileAlpha", "DeviceB", "Satellite1"));
+                controller.simulate(1);
+                assertEquals(new FileInfoResponse("FileAlpha", msg, msg.length(), true),
+                                controller.getInfo("Satellite1").getFiles().get("FileAlpha"));
+                assertDoesNotThrow(() -> controller.sendFile("FileBeta", "DeviceB", "Satellite1"));
+                controller.simulate(1);
+                assertEquals(15, controller.getInfo("Satellite1").getFiles().get("FileBeta").getData().length());
+                controller.simulate(1);
+                assertEquals(new FileInfoResponse("FileAlpha", msg, msg.length(), true),
+                                controller.getInfo("Satellite1").getFiles().get("FileAlpha"));
+        }
 }
