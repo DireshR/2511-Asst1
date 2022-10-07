@@ -128,10 +128,7 @@ public class TeleportingSatellite extends Satellite {
                 break;
             }
         }
-        // if (this.getPosition().equals(Angle.fromDegrees(0)) && ) {
-        // String filename = fileToDelete.getFilename();
 
-        // }
         if (fileToDelete != null) {
             files.remove(fileToDelete);
         }

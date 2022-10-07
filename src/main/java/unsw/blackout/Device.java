@@ -15,7 +15,6 @@ public class Device extends Entity {
     private String deviceId;
     private String type;
     private Angle position;
-    // private ArrayList<File> files = new ArrayList<File>();
 
     public Device(String deviceId, String type, Angle position) {
         super(deviceId, type);
@@ -42,6 +41,7 @@ public class Device extends Entity {
         this.type = type;
     }
 
+    @Override
     public Angle getPosition() {
         return position;
     }
