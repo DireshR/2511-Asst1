@@ -1,0 +1,15 @@
+Domain Modelling: Good job representing the inheritance and composition/aggregation relationships.
+For the cardinalities for Entity and File, I would make it 1 to 0.. as for every entity, there are 0 or more files.
+
+Cohesion and Coupling
+Good job with trying to minimalise coupling. Good how you abstracted out the FileInfoResponse creation into the Entity class. 
+To further improve this, you can move the FileInfoResponse creation into the File class and move the EntityInfoResponse creation 
+into the Entity class as well so you won't need to call getters.
+
+Code Quality: Good code style.
+
+Blogging: Great blogging, clear evidence of the process of design thinking and reflection.
+
+Software Testing: Fantastic tests that cover unique cases. Well done!
+
+
